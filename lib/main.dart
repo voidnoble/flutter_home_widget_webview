@@ -31,6 +31,12 @@ void backgroundCallback(Uri? uri) async {
     await HomeWidget.updateWidget(
         name: 'AppWidgetProvider', androidName: 'AppWidgetProvider');
   }
+
+  if (uri.host == 'click.menu') {
+    var uriPaths = uri.pathSegments;
+    var menuId = int.parse(uriPaths[0]);
+    await HomeWidget.saveWidgetData('_menuId', menuId);
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -91,15 +97,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    HomeWidget.registerBackgroundCallback(homeWidgetBackgroundCallback);
     HomeWidget.widgetClicked.listen((uri) => loadData(uri));
   }
 
-  void loadData(Uri? uri) async {
-    await HomeWidget.getWidgetData('_counter', defaultValue: 0).then((value) {
-      _counter = value!;
-    });
-    setState(() {});
-
+  void homeWidgetBackgroundCallback(Uri? uri) async {
     if (uri == null) return;
 
     if (uri.host == 'click.menu') {
@@ -115,6 +117,15 @@ class _MyHomePageState extends State<MyHomePage> {
       // webViewController?.loadUrl(urlRequest: URLRequest(url: Uri.parse(uri.toString())));
     }
     setState(() {});
+  }
+
+  void loadData(Uri? uri) async {
+    await HomeWidget.getWidgetData('_counter', defaultValue: 0).then((value) {
+      _counter = value!;
+    });
+    setState(() {});
+
+    homeWidgetBackgroundCallback(uri);
   }
 
   Future<void> updateAppWidget() async {
